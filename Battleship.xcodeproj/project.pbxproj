@@ -10,6 +10,7 @@
 		CDA1C3551C47E36B00FFC98A /* BTSMenuViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CDA1C3541C47E36B00FFC98A /* BTSMenuViewController.m */; };
 		CDA1C3581C47E49C00FFC98A /* BTSTwoPlayersStartGameScreen.m in Sources */ = {isa = PBXBuildFile; fileRef = CDA1C3571C47E49C00FFC98A /* BTSTwoPlayersStartGameScreen.m */; };
 		CDA1C35B1C47E62300FFC98A /* BTSGameScreen.m in Sources */ = {isa = PBXBuildFile; fileRef = CDA1C35A1C47E62300FFC98A /* BTSGameScreen.m */; };
+		CDA1C35E1C4D1E2F00FFC98A /* BTSGameField.m in Sources */ = {isa = PBXBuildFile; fileRef = CDA1C35D1C4D1E2F00FFC98A /* BTSGameField.m */; };
 		CDBD32211C4529C200A32A87 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CDBD32201C4529C200A32A87 /* main.m */; };
 		CDBD32241C4529C200A32A87 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CDBD32231C4529C200A32A87 /* AppDelegate.m */; };
 		CDBD32271C4529C200A32A87 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CDBD32261C4529C200A32A87 /* ViewController.m */; };
@@ -26,6 +27,8 @@
 		CDA1C3571C47E49C00FFC98A /* BTSTwoPlayersStartGameScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BTSTwoPlayersStartGameScreen.m; sourceTree = "<group>"; };
 		CDA1C3591C47E62300FFC98A /* BTSGameScreen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BTSGameScreen.h; sourceTree = "<group>"; };
 		CDA1C35A1C47E62300FFC98A /* BTSGameScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BTSGameScreen.m; sourceTree = "<group>"; };
+		CDA1C35C1C4D1E2F00FFC98A /* BTSGameField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BTSGameField.h; sourceTree = "<group>"; };
+		CDA1C35D1C4D1E2F00FFC98A /* BTSGameField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BTSGameField.m; sourceTree = "<group>"; };
 		CDBD321C1C4529C200A32A87 /* Battleship.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Battleship.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDBD32201C4529C200A32A87 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		CDBD32221C4529C200A32A87 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -85,6 +88,8 @@
 				CDA1C3571C47E49C00FFC98A /* BTSTwoPlayersStartGameScreen.m */,
 				CDA1C3591C47E62300FFC98A /* BTSGameScreen.h */,
 				CDA1C35A1C47E62300FFC98A /* BTSGameScreen.m */,
+				CDA1C35C1C4D1E2F00FFC98A /* BTSGameField.h */,
+				CDA1C35D1C4D1E2F00FFC98A /* BTSGameField.m */,
 			);
 			path = Battleship;
 			sourceTree = "<group>";
@@ -174,6 +179,7 @@
 				CDBD32211C4529C200A32A87 /* main.m in Sources */,
 				CDA1C3551C47E36B00FFC98A /* BTSMenuViewController.m in Sources */,
 				CDA1C35B1C47E62300FFC98A /* BTSGameScreen.m in Sources */,
+				CDA1C35E1C4D1E2F00FFC98A /* BTSGameField.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

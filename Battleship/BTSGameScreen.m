@@ -7,6 +7,7 @@
 //
 
 #import "BTSGameScreen.h"
+#import "BTSGameField.h"
 
 @interface BTSGameScreen ()
 
@@ -37,6 +38,18 @@
 //            [self.btnDone_player2_bigView setImage:[UIImage imageNamed:@"btnExit"] forState:UIControlStateNormal];
             [self.label_player1_smallView setText:@"You"];
             [self.label_player2_bigView setText:@"Computer"];
+            
+            self.gameFieldPlayer1 = [BTSGameField new];
+            [self.gameFieldPlayer1 generate];
+    
+            self.gameFieldPlayer2 = [BTSGameField new];
+            [self.gameFieldPlayer2 generate];
+            
+            self.player1_bigView.hidden = YES;
+            self.player2_smallView.hidden = YES;
+            self.player2_bigView.hidden = NO;
+            self.player1_smallView.hidden = NO;
+            
             break;
         }
         case BTSGameScreenMode_Player1: {
@@ -54,7 +67,41 @@
             break;
         }
     }
-    // Do any additional setup after loading the view.
+    
+    CGPoint offset = (CGPoint){17, 17};
+    CGPoint offset_sm = (CGPoint){9, 9};
+    CGPoint itemSize = (CGPoint){33.4, 33.4};
+    CGPoint itemSize_sm = (CGPoint){16.6, 16.6};
+    
+    for (BTSFieldPoint *p in self.gameFieldPlayer1.shipsPoints) {
+        if (!self.player1_bigView.hidden) {
+            UIImage *ship = [UIImage imageNamed:@"ship_light"];
+            UIImageView *imgView = [[UIImageView alloc] initWithImage:ship];
+            imgView.center = CGPointMake(offset.x+p.x*itemSize.x, offset.y+p.y*itemSize.y);
+            [self.player1_bigView_gameScreen addSubview:imgView];
+        }
+        else if (!self.player1_smallView.hidden) {
+            UIImage *ship = [UIImage imageNamed:@"ship_light_sm"];
+            UIImageView *imgView = [[UIImageView alloc] initWithImage:ship];
+            imgView.center = CGPointMake(offset_sm.x+p.x*itemSize_sm.x, offset_sm.y+p.y*itemSize_sm.y);
+            [self.player1_smallView_gameScreen addSubview:imgView];
+        }
+    }
+    
+    for (BTSFieldPoint *p in self.gameFieldPlayer2.shipsPoints) {
+        if (!self.player2_bigView.hidden) {
+            UIImage *ship = [UIImage imageNamed:@"ship_dark"];
+            UIImageView *imgView = [[UIImageView alloc] initWithImage:ship];
+            imgView.center = CGPointMake(offset.x+p.x*itemSize.x, offset.y+p.y*itemSize.y);
+            [self.player2_bigView_gameScreen addSubview:imgView];
+        }
+        else if (!self.player2_smallView.hidden) {
+            UIImage *ship = [UIImage imageNamed:@"ship_dark_sm"];
+            UIImageView *imgView = [[UIImageView alloc] initWithImage:ship];
+            imgView.center = CGPointMake(offset_sm.x+p.x*itemSize_sm.x, offset_sm.y+p.y*itemSize_sm.y);
+            [self.player2_smallView_gameScreen addSubview:imgView];
+        }
+    }
 }
 
 - (void)didReceiveMemoryWarning {

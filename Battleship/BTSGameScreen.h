@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+@class BTSGameField;
+
 typedef enum {
     BTSGameScreenMode_OnePlayer = 0,
     BTSGameScreenMode_Player1,
@@ -15,5 +17,9 @@ typedef enum {
 }BTSGameScreenMode;
 
 @interface BTSGameScreen : UIViewController
+
 @property (nonatomic) BTSGameScreenMode gameScreenMode;
+@property (nonatomic, strong) BTSGameField *gameFieldPlayer1;
+@property (nonatomic, strong) BTSGameField *gameFieldPlayer2;
+
 @end
