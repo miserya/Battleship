@@ -8,6 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
+@class BTSGameField;
+
 @interface BTSTwoPlayersStartGameScreen : UIViewController
+
+@property (strong, nonatomic) BTSGameField *player1_GameField;
+@property (strong, nonatomic) BTSGameField *player2_GameField;
 
 @end

@@ -10,7 +10,9 @@
 
 typedef enum {
     BTSFieldPointValue_Ship = 0,
-    BTSFieldPointValue_Empty
+    BTSFieldPointValue_TappedShip,
+    BTSFieldPointValue_Empty,
+    BTSFieldPointValue_Possible,
 }BTSFieldPointValue;
 
 @interface BTSFieldPoint : NSObject
@@ -22,5 +24,9 @@ typedef enum {
 
 @interface BTSGameField : NSObject
 @property (nonatomic, readonly) NSMutableArray *shipsPoints;
+@property (nonatomic, readonly) NSMutableArray *tappedShipPoints;
+@property (nonatomic, readonly) NSMutableArray *emptyPoints;
 - (void)generate;
+- (BTSFieldPointValue)valueForPoint:(BTSFieldPoint*)point;
+- (void)setValue:(BTSFieldPointValue)value forPointWithX:(NSInteger)x Y:(NSInteger)y;
 @end

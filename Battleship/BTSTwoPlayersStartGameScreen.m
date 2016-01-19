@@ -8,6 +8,7 @@
 
 #import "BTSTwoPlayersStartGameScreen.h"
 #import "BTSGameScreen.h"
+#import "BTSGameField.h"
 
 typedef enum {
     BTSPlayer_None = 0,
@@ -28,6 +29,11 @@ typedef enum {
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    self.player1_GameField = [BTSGameField new];
+    [self.player1_GameField generate];
+    
+    self.player2_GameField = [BTSGameField new];
+    [self.player2_GameField generate];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -41,6 +47,8 @@ typedef enum {
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.destinationViewController isKindOfClass:[BTSGameScreen class]]) {
         ((BTSGameScreen*)segue.destinationViewController).gameScreenMode = (self.currentPlayer == BTSPlayer_1) ? BTSGameScreenMode_Player1 : BTSGameScreenMode_Player2;
+        ((BTSGameScreen*)segue.destinationViewController).gameFieldPlayer1 = self.player1_GameField;
+        ((BTSGameScreen*)segue.destinationViewController).gameFieldPlayer2 = self.player2_GameField;
     }
 }
 

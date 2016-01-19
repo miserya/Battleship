@@ -27,6 +27,8 @@
 @interface BTSGameField()
 @property (nonatomic, strong) NSMutableDictionary *gameFieldDictionary;
 @property (nonatomic, strong) NSMutableArray *shipsPoints;
+@property (nonatomic, strong) NSMutableArray *tappedShipPoints;
+@property (nonatomic, strong) NSMutableArray *emptyPoints;
 @end
 
 @implementation BTSGameField
@@ -37,59 +39,60 @@
     
     self.gameFieldDictionary = [NSMutableDictionary new];
     self.shipsPoints = [NSMutableArray new];
+    self.tappedShipPoints = [NSMutableArray new];
+    self.emptyPoints = [NSMutableArray new];
     
     return self;
 }
+- (BTSFieldPointValue)valueForPoint:(BTSFieldPoint*)point {
+    NSString *key = [NSString stringWithFormat:@"%ld%ld", point.x, point.y];
+    if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]]) {
+        BTSFieldPoint *p = self.gameFieldDictionary[key];
+        return p.value;
+    }
+    return BTSFieldPointValue_Empty;
+}
+- (void)setValue:(BTSFieldPointValue)value forPointWithX:(NSInteger)x Y:(NSInteger)y {
+    NSString *key = [NSString stringWithFormat:@"%ld%ld", x, y];
+    BTSFieldPoint *point = [[BTSFieldPoint alloc] initWithXPos:x YPos:y value:value];
+    self.gameFieldDictionary[key] = point;
+    
+    if (value == BTSFieldPointValue_Empty) {
+        [self.emptyPoints addObject:point];
+    }
+    else if (value == BTSFieldPointValue_TappedShip) {
+        [self.tappedShipPoints addObject:point];
+    }
+}
+
+#pragma mark - GameField Generation
 
 static const NSInteger kMaxX = 9;
 static const NSInteger kMaxY = 9;
 
 - (void)generate {
-    int countOfShips1 = 4;
-    int countOfShips2 = 3;
-    int countOfShips3 = 2;
-//    NSInteger countOfShips4 = 1;
-    
-    for (int i=0; i<countOfShips1; i++) {
-        NSInteger x = arc4random()%kMaxX;
-        NSInteger y = arc4random()%kMaxY;
+    for (int j=1; j<5; j++) {
         
-        while (![self possibleAddShipAtPointX:x posintY:y]) {
-            x = arc4random()%kMaxX;
-            y = arc4random()%kMaxY;
-        }
-        
-        BTSFieldPoint *ship = [self addShipPointAtXPos:x YPos:y];
-        [self.shipsPoints addObject:ship];
-        [self addEnvironmentForPoints:@[ship]];
-    }
+        int maxDeep = 5-j;
+        for (int i=0; i<j; i++) {
+            
+            NSInteger x1;
+            NSInteger y1;
 
-    int arrOfCounts[2] = {countOfShips2, countOfShips3};
-    for (int j=0; j<2; j++) {
-        
-        int k=0, m=0;
-        int maxDeep = j+2;
-        for (int i=0; i<arrOfCounts[j]; i++) {
+            BTSFieldPoint *point;
             
-            NSInteger x1 = k;
-            NSInteger y1 = m;
-            BTSFieldPoint *point = [[BTSFieldPoint alloc] initWithXPos:x1 YPos:y1 value:BTSFieldPointValue_Ship];
-            
-            NSArray *arr = [self getPossiblePointForArray:@[point] deep:1 maxDeep:maxDeep];
-            while (arr.count<3) {
-                k++;
-                if (k==kMaxX && m<kMaxY-1) {
-                    k=0;
-                    m++;
+            NSArray *arr = nil;
+            while (![self possibleAddShipAtPointX:x1 posintY:y1] || arr.count<maxDeep) {
+                x1 = arc4random()%kMaxX;
+                y1 = arc4random()%kMaxY;
+                
+                point = [[BTSFieldPoint alloc] initWithXPos:x1 YPos:y1 value:BTSFieldPointValue_Ship];
+                if (maxDeep==1) {
+                    arr = @[point];
                 }
                 else {
-                    NSLog(@"Oh, no...");
-                    break;
+                    arr = [self getPossiblePointForArray:@[point] deep:1 maxDeep:maxDeep];
                 }
-                x1 = k;
-                y1 = m;
-                point = [[BTSFieldPoint alloc] initWithXPos:x1 YPos:y1 value:BTSFieldPointValue_Ship];
-                arr = [self getPossiblePointForArray:@[point] deep:1 maxDeep:maxDeep];
             }
             for (BTSFieldPoint *p in arr) {
                 BTSFieldPoint *ship = [self addShipPointAtXPos:p.x YPos:p.y];
@@ -99,62 +102,59 @@ static const NSInteger kMaxY = 9;
             [self addEnvironmentForPoints:arr];
         }
     }
-    
-//    for (int i=0; i<countOfShips2; i++) {
-//        
-//        NSInteger x1 = arc4random()%kMaxX;
-//        NSInteger y1 = arc4random()%kMaxY;
-//        BTSFieldPoint *point = [[BTSFieldPoint alloc] initWithXPos:x1 YPos:y1 value:BTSFieldPointValue_Ship];
-//        
-//        NSArray *arr = [self getPossiblePointForArray:@[point] deep:1 maxDeep:2];
-//        while (arr.count<2) {
-//            x1 = arc4random()%kMaxX;
-//            y1 = arc4random()%kMaxY;
-//            point = [[BTSFieldPoint alloc] initWithXPos:x1 YPos:y1 value:BTSFieldPointValue_Ship];
-//            arr = [self getPossiblePointForArray:@[point] deep:1 maxDeep:2];
-//        }
-//        for (BTSFieldPoint *p in arr) {
-//            BTSFieldPoint *ship = [self addShipPointAtXPos:p.x YPos:p.y];
-//            [self.shipsPoints addObject:ship];
-//        }
-//        
-//        [self addEnvironmentForPoints:arr];
-//    }
-    
-    
-    
 }
+
+#pragma mark helpers methods
+
 - (NSArray*)getPossiblePointForArray:(NSArray*)arrWithAddedPoints deep:(int)deep maxDeep:(const int)maxDeep {
+    NSArray* (^randomIndexesWithRange)(NSRange) = ^(NSRange range) {
+        NSMutableArray *arr = [NSMutableArray new];
+        NSMutableArray *tempArr = [NSMutableArray new];
+        for (NSInteger i=range.location; i<range.location+range.length; i++) {
+            [tempArr addObject:[NSNumber numberWithInteger:i]];
+        }
+        for (NSInteger i=range.location; i<(range.location+range.length); i++) {
+            NSInteger randomIndex = arc4random()%tempArr.count;
+            [arr addObject:tempArr[randomIndex]];
+            [tempArr removeObjectAtIndex:randomIndex];
+        }
+        return [arr copy];
+    };
+    
     deep++;
     
     BTSFieldPoint *prevPoint = arrWithAddedPoints.lastObject;
-    NSArray *arr = [self possiblePointsForPoint:prevPoint exceptPoints:arrWithAddedPoints];
-    
-    for (int i=0; i<arr.count; i++) {
-        
-        
-        BTSFieldPoint *newPoint = arr[i];
-        
-        NSMutableArray *newExceptions = [NSMutableArray arrayWithArray:arrWithAddedPoints];
-        [newExceptions addObject:newPoint];
-        
-        if (deep<maxDeep) {
-            NSArray* nextPoints = [self getPossiblePointForArray:newExceptions deep:deep maxDeep:maxDeep];//getPossiblePoint(newExceptions, deep, maxDeep);
-            if (nextPoints.count>0) {
-                [newExceptions addObject:nextPoints.firstObject];
+    NSArray *arr = [self possibleNextPointsForPoint:prevPoint exceptPoints:arrWithAddedPoints];
+
+    if (arr.count>0) {
+        NSArray *indexes = randomIndexesWithRange(NSMakeRange(0, arr.count));
+        for (int i=0; i<arr.count; i++) {
+            BTSFieldPoint *newPoint = arr[[indexes[i] integerValue]];
+            
+            NSMutableArray *newExceptions = [NSMutableArray arrayWithArray:arrWithAddedPoints];
+            [newExceptions addObject:newPoint];
+            
+            if (deep<maxDeep) {
+                NSArray* nextPoints = [self getPossiblePointForArray:newExceptions deep:deep maxDeep:maxDeep];//getPossiblePoint(newExceptions, deep, maxDeep);
+                if (nextPoints.count>0) {
+                    if (nextPoints.count == maxDeep) {
+                        return nextPoints;
+                    }
+                    else {
+                        [newExceptions addObject:nextPoints.firstObject];
+                        return [newExceptions copy];
+                    }
+                }
+            }
+            else {
                 return [newExceptions copy];
             }
         }
-        else {
-            return [newExceptions copy];
-        }
     }
-        
+    
     return nil;
 }
-
-
-- (NSArray*)possiblePointsForPoint:(BTSFieldPoint*)p exceptPoints:(NSArray*)arrOfExceptions {
+- (NSArray*)possibleNextPointsForPoint:(BTSFieldPoint*)p exceptPoints:(NSArray*)arrOfExceptions {
     NSMutableArray *arr = [NSMutableArray new];
     
     NSInteger x1 = p.x;
@@ -196,7 +196,6 @@ static const NSInteger kMaxY = 9;
     
     return [arr copy];
 }
-
 - (BOOL)possibleAddShipAtPointX:(NSInteger)x posintY:(NSInteger)y {
     
     if (x>=kMaxX || y>=kMaxY || x<0 || y<0)
@@ -213,7 +212,7 @@ static const NSInteger kMaxY = 9;
         {
             indexX = x-1;
             NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]]) {
+            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
                 return NO;
             }
         }
@@ -221,7 +220,7 @@ static const NSInteger kMaxY = 9;
         {
             indexX = x;
             NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]]) {
+            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
                 return NO;
             }
         }
@@ -230,7 +229,7 @@ static const NSInteger kMaxY = 9;
         {
             indexX = x+1;
             NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]]) {
+            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
                 return NO;
             }
         }
@@ -240,7 +239,7 @@ static const NSInteger kMaxY = 9;
         indexY = y;
         indexX = x-1;
         NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-        if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]]) {
+        if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
             return NO;
         }
     }
@@ -249,7 +248,7 @@ static const NSInteger kMaxY = 9;
         indexY = y;
         indexX = x+1;
         NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-        if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]]) {
+        if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
             return NO;
         }
     }
@@ -262,7 +261,7 @@ static const NSInteger kMaxY = 9;
         {
             indexX = x-1;
             NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]]) {
+            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
                 return NO;
             }
         }
@@ -270,7 +269,7 @@ static const NSInteger kMaxY = 9;
         {
             indexX = x;
             NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]]) {
+            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
                 return NO;
             }
         }
@@ -279,7 +278,7 @@ static const NSInteger kMaxY = 9;
         {
             indexX = x+1;
             NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]]) {
+            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
                 return NO;
             }
         }
@@ -378,6 +377,9 @@ static const NSInteger kMaxY = 9;
         }
     }
 }
+
+#pragma mark add points
+
 - (BTSFieldPoint*)addShipPointAtXPos:(NSInteger)xPos YPos:(NSInteger)yPos {
     return [self addPoint:BTSFieldPointValue_Ship atXPos:xPos YPos:yPos];
 }
