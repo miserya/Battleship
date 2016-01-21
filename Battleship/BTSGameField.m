@@ -7,6 +7,7 @@
 //
 
 #import "BTSGameField.h"
+@import UIKit;
 
 @implementation BTSFieldPoint
 
@@ -29,6 +30,12 @@
 @property (nonatomic, strong) NSMutableArray *shipsPoints;
 @property (nonatomic, strong) NSMutableArray *tappedShipPoints;
 @property (nonatomic, strong) NSMutableArray *emptyPoints;
+
+@property (nonatomic, copy) BOOL (^isException)(NSInteger, NSInteger, NSArray*);
+@property (nonatomic, copy) NSArray* (^shipsArrRelatedToPoint)(BTSFieldPoint*, NSArray*);
+
+@property (nonatomic, strong) NSMutableArray *arrOfFreePositions;
+
 @end
 
 @implementation BTSGameField
@@ -41,6 +48,77 @@
     self.shipsPoints = [NSMutableArray new];
     self.tappedShipPoints = [NSMutableArray new];
     self.emptyPoints = [NSMutableArray new];
+    
+    __block __weak BTSGameField *wSelf = self;
+    
+    self.isException = ^BOOL(NSInteger x2, NSInteger y2, NSArray* exceptions) {
+        if (!exceptions)
+            return NO;
+        
+        for (BTSFieldPoint *p in exceptions) {
+            if (p.x==x2 && p.y==y2) {
+                return YES;
+            }
+        }
+        return NO;
+    };
+    self.shipsArrRelatedToPoint = ^NSArray*(BTSFieldPoint* point, NSArray *exceptions) {
+        
+        __block NSMutableArray *arr = [NSMutableArray new];
+        __block NSMutableArray *arrOfExceptions = [NSMutableArray arrayWithArray:exceptions];
+        void (^addPoint) (NSInteger, NSInteger) = ^void (NSInteger x, NSInteger y) {
+            NSString *key = [NSString stringWithFormat:@"%ld%ld", x, y];
+            BTSFieldPoint *p = wSelf.gameFieldDictionary[key];
+            if (p && ![p isKindOfClass:[NSNull class]]
+                && (p.value == BTSFieldPointValue_Ship || p.value == BTSFieldPointValue_TappedShip)
+                && !self.isException(p.x, p.y, arrOfExceptions)) {
+                [arr addObject:p];
+                [arrOfExceptions addObject:p];
+            }
+        };
+        
+        NSInteger x = point.x;
+        NSInteger y = point.y;
+        
+        NSInteger x1 = x;
+        NSInteger y1 = y;
+        
+        //top
+        if (y-1>=0)
+        {
+            x1 = x;
+            y1 = y-1;
+//            NSString *key = [NSString stringWithFormat:@"%ld%ld", x1, y1];
+//            BTSFieldPoint *p = wSelf.gameFieldDictionary[key];
+//            if (p && ![p isKindOfClass:[NSNull class]] && (p.value == BTSFieldPointValue_Ship || p.value == BTSFieldPointValue_TappedShip) && !self.isException(p.x, p.y, exceptions)) {
+//                [arr addObject:p];
+//            }
+            addPoint(x1, y1);
+        }
+        //left
+        if (x-1>=0)
+        {
+            x1 = x-1;
+            y1 = y;
+            addPoint(x1, y1);
+        }
+        //right
+        if (x+1<kMaxX)
+        {
+            x1 = x+1;
+            y1 = y;
+            addPoint(x1, y1);
+        }
+        //bottom
+        if (y+1<kMaxY)
+        {
+            x1 = x;
+            y1 = y+1;
+            addPoint(x1, y1);
+        }
+        
+        return [arr copy];
+    };
     
     return self;
 }
@@ -63,6 +141,79 @@
     else if (value == BTSFieldPointValue_TappedShip) {
         [self.tappedShipPoints addObject:point];
     }
+    
+    if (self.arrOfFreePositions) {
+        for (NSValue *value in self.arrOfFreePositions) {
+            CGPoint point = [value CGPointValue];
+            if ((NSInteger)point.x == x && (NSInteger)point.y == y) {
+                [self.arrOfFreePositions removeObject:value];
+                break;
+            }
+        }
+    }
+}
+- (BTSFieldPoint*)randomFire {
+    if (!self.arrOfFreePositions) {
+        self.arrOfFreePositions = [NSMutableArray new];
+        for (NSInteger i=0; i<kMaxX; i++) {
+            for (NSInteger j=0; j<kMaxY; j++) {
+                [self.arrOfFreePositions addObject:[NSValue valueWithCGPoint:CGPointMake(i, j)]];
+            }
+        }
+    }
+    
+    NSInteger randomIndex = arc4random()%self.arrOfFreePositions.count;
+    NSValue *value = self.arrOfFreePositions[randomIndex];
+    CGPoint index = [value CGPointValue];
+    BTSFieldPoint *point = [[BTSFieldPoint alloc] initWithXPos:index.x YPos:index.y value:BTSFieldPointValue_Possible];
+    return point;
+}
+
+#pragma mark - Ship Detection
+
+- (NSArray*)arrOfConnectedPointsForPoint:(BTSFieldPoint*)point {
+    NSMutableArray *arrOfExceptions = [@[point] mutableCopy];
+    NSArray *arr = self.shipsArrRelatedToPoint(point, [arrOfExceptions copy]);
+    while (arr.count>0) {
+        [arrOfExceptions addObjectsFromArray:arr];
+        
+        NSMutableArray *newExceptions = [NSMutableArray new];
+        for (BTSFieldPoint *p in arr) {
+            NSArray *tempArr = self.shipsArrRelatedToPoint(p, [arrOfExceptions copy]);
+            [newExceptions addObjectsFromArray:tempArr];
+        }
+        
+        arr = [newExceptions copy];
+    }
+    
+    //check for points repeting
+    {
+        NSMutableArray *arrToDelete = [NSMutableArray new];
+        for (int i=0; i<arrOfExceptions.count; i++) {
+            BTSFieldPoint *p1 = arrOfExceptions[i];
+            for (int j=i; j<arrOfExceptions.count; j++) {
+                BTSFieldPoint *p2 = arrOfExceptions[j];
+                if (p1!=p2 && p1.x==p2.x && p1.y==p2.y) {
+                    NSLog(@"Catched!");
+                    [arrToDelete addObject:p2];
+                }
+            }
+        }
+    }
+    return arrOfExceptions;
+}
+- (BOOL)canArrangePointsOfShip:(NSArray*)shipsPoints {
+    
+    for (BTSFieldPoint *p in shipsPoints) {
+        NSString *key = [NSString stringWithFormat:@"%ld%ld", p.x, p.y];
+        NSArray *arr = self.shipsArrRelatedToPoint(self.gameFieldDictionary[key], shipsPoints);
+        if (arr.count>0)
+            return NO;
+    }
+    return YES;
+}
+- (NSArray*)environmentOfEmptyFieldsForShipWithPoint:(NSArray*)points {
+    return [self environmentForPoints:points];
 }
 
 #pragma mark - GameField Generation
@@ -99,7 +250,10 @@ static const NSInteger kMaxY = 9;
                 [self.shipsPoints addObject:ship];
             }
             
-            [self addEnvironmentForPoints:arr];
+            NSArray *arrayOfEmptyPoints = [self environmentForPoints:arr];
+            for (BTSFieldPoint *p in arrayOfEmptyPoints) {
+                [self addEmptyPointAtXPos:p.x YPos:p.y];
+            }
         }
     }
 }
@@ -155,43 +309,49 @@ static const NSInteger kMaxY = 9;
     return nil;
 }
 - (NSArray*)possibleNextPointsForPoint:(BTSFieldPoint*)p exceptPoints:(NSArray*)arrOfExceptions {
-    NSMutableArray *arr = [NSMutableArray new];
+
+    __block NSMutableArray *arr = [NSMutableArray new];
+    __block NSMutableArray *exceptions = [arrOfExceptions mutableCopy];
+
+    void (^addPoint)(NSInteger, NSInteger) = ^void(NSInteger x, NSInteger y) {
+        if ([self possibleAddShipAtPointX:x posintY:y] && !self.isException(x, y, exceptions)) {
+            BTSFieldPoint *point = [[BTSFieldPoint alloc] initWithXPos:x YPos:y value:BTSFieldPointValue_Ship];
+            [arr addObject:point];
+            [exceptions addObject:point];
+        }
+    };
     
     NSInteger x1 = p.x;
     NSInteger y1 = p.y;
-    
-    __weak NSArray *helperArr = arrOfExceptions;
-    BOOL (^isException)(NSInteger, NSInteger) = ^BOOL(NSInteger x2, NSInteger y2) {
-        for (BTSFieldPoint *p in helperArr) {
-            if (p.x==x2 && p.y==y2) {
-                return YES;
-            }
-        }
-        return NO;
-    };
-    
+
     NSInteger x2 = x1+1;
     NSInteger y2 = y1;
-    if ([self possibleAddShipAtPointX:x2 posintY:y2] && !isException(x2, y2)) {
-        [arr addObject:[[BTSFieldPoint alloc] initWithXPos:x2 YPos:y2 value:BTSFieldPointValue_Ship]];
+    
+    if (x1+1<kMaxX) {
+        x2 = x1+1;
+        y2 = y1;
+//        if ([self possibleAddShipAtPointX:x2 posintY:y2] && !self.isException(x2, y2, arrOfExceptions)) {
+//            [arr addObject:[[BTSFieldPoint alloc] initWithXPos:x2 YPos:y2 value:BTSFieldPointValue_Ship]];
+//        }
+        addPoint(x2, y2);
     }
     
-    x2 = x1;
-    y2 = y1+1;
-    if ([self possibleAddShipAtPointX:x2 posintY:y2] && !isException(x2, y2)) {
-        [arr addObject:[[BTSFieldPoint alloc] initWithXPos:x2 YPos:y2 value:BTSFieldPointValue_Ship]];
+    if (y1+1<kMaxY) {
+        x2 = x1;
+        y2 = y1+1;
+        addPoint(x2, y2);
     }
     
-    x2 = x1-1;
-    y2 = y1;
-    if ([self possibleAddShipAtPointX:x2 posintY:y2] && !isException(x2, y2)) {
-        [arr addObject:[[BTSFieldPoint alloc] initWithXPos:x2 YPos:y2 value:BTSFieldPointValue_Ship]];
+    if (x1-1>=0) {
+        x2 = x1-1;
+        y2 = y1;
+        addPoint(x2, y2);
     }
     
-    x2 = x1;
-    y2 = y1-1;
-    if ([self possibleAddShipAtPointX:x2 posintY:y2] && !isException(x2, y2)) {
-        [arr addObject:[[BTSFieldPoint alloc] initWithXPos:x2 YPos:y2 value:BTSFieldPointValue_Ship]];
+    if (y1-1>=0) {
+        x2 = x1;
+        y2 = y1-1;
+        addPoint(x2, y2);
     }
     
     return [arr copy];
@@ -201,8 +361,22 @@ static const NSInteger kMaxY = 9;
     if (x>=kMaxX || y>=kMaxY || x<0 || y<0)
         return NO;
     
-    NSInteger indexY, indexX;
+    __block __weak BTSGameField *wSelf = self;
+    BOOL (^checkPoint)(NSInteger, NSInteger) = ^BOOL (NSInteger indexX, NSInteger indexY) {
+        NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
+        if (wSelf.gameFieldDictionary[key] && ![wSelf.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)wSelf.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
+            return NO;
+        }
+        return YES;
+    };
     
+    NSInteger indexY, indexX;
+    //center
+    {
+        indexX = x;
+        indexY = y;
+        if (!checkPoint(indexX, indexY)) return NO;
+    }
     // top
     if (y-1>=0) {
         indexY = y-1;
@@ -211,46 +385,31 @@ static const NSInteger kMaxY = 9;
         if (x-1>=0)
         {
             indexX = x-1;
-            NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
-                return NO;
-            }
+            if (!checkPoint(indexX, indexY)) return NO;
         }
         // center
         {
             indexX = x;
-            NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
-                return NO;
-            }
+            if (!checkPoint(indexX, indexY)) return NO;
         }
         // right
         if (x+1<kMaxX)
         {
             indexX = x+1;
-            NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
-                return NO;
-            }
+            if (!checkPoint(indexX, indexY)) return NO;
         }
     }
     //left
     if (x-1>=0) {
         indexY = y;
         indexX = x-1;
-        NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-        if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
-            return NO;
-        }
+        if (!checkPoint(indexX, indexY)) return NO;
     }
     //right
     if (x+1<kMaxX) {
         indexY = y;
         indexX = x+1;
-        NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-        if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
-            return NO;
-        }
+        if (!checkPoint(indexX, indexY)) return NO;
     }
     // bottom
     if (y+1<kMaxY) {
@@ -260,41 +419,32 @@ static const NSInteger kMaxY = 9;
         if (x-1>=0)
         {
             indexX = x-1;
-            NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
-                return NO;
-            }
+            if (!checkPoint(indexX, indexY)) return NO;
         }
         // center
         {
             indexX = x;
-            NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
-                return NO;
-            }
+            if (!checkPoint(indexX, indexY)) return NO;
         }
         // right
         if (x+1<kMaxX)
         {
             indexX = x+1;
-            NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
-            if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)self.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
-                return NO;
-            }
+            if (!checkPoint(indexX, indexY)) return NO;
         }
     }
     return YES;
 }
-- (void)addEnvironmentForPoints:(NSArray*)points {
+- (NSArray*)environmentForPoints:(NSArray*)points {
+    __block NSMutableArray *arr = [NSMutableArray new];
+    __block NSMutableArray *exceptions = [points mutableCopy];
     
-    __weak NSArray *helperArr = points;
-    BOOL (^isException)(NSInteger, NSInteger) = ^BOOL(NSInteger x2, NSInteger y2) {
-        for (BTSFieldPoint *p in helperArr) {
-            if (p.x==x2 && p.y==y2) {
-                return YES;
-            }
+    void (^addPoint)(NSInteger, NSInteger) = ^void (NSInteger x, NSInteger y) {
+        if (!self.isException(x, y, exceptions)) {
+            BTSFieldPoint *point = [[BTSFieldPoint alloc] initWithXPos:x YPos:y value:BTSFieldPointValue_Empty];
+            [arr addObject:point];
+            [exceptions addObject:point];
         }
-        return NO;
     };
     
     for (BTSFieldPoint *p in points) {
@@ -302,7 +452,6 @@ static const NSInteger kMaxY = 9;
         NSInteger x = p.x, y = p.y;
         
         NSInteger indexY, indexX;
-        
         // top
         if (y-1>=0) {
             indexY = y-1;
@@ -311,41 +460,31 @@ static const NSInteger kMaxY = 9;
             if (x-1>=0)
             {
                 indexX = x-1;
-                if (!isException(indexX, indexY)) {
-                    [self addEmptyPointAtXPos:indexX YPos:indexY];
-                }
+                addPoint(indexX, indexY);
             }
             // center
             {
                 indexX = x;
-                if (!isException(indexX, indexY)) {
-                    [self addEmptyPointAtXPos:indexX YPos:indexY];
-                }
+                addPoint(indexX, indexY);
             }
             // right
             if (x+1<kMaxX)
             {
                 indexX = x+1;
-                if (!isException(indexX, indexY)) {
-                    [self addEmptyPointAtXPos:indexX YPos:indexY];
-                }
+                addPoint(indexX, indexY);
             }
         }
         //left
         if (x-1>=0) {
             indexY = y;
             indexX = x-1;
-            if (!isException(indexX, indexY)) {
-                [self addEmptyPointAtXPos:indexX YPos:indexY];
-            }
+            addPoint(indexX, indexY);
         }
         //right
         if (x+1<kMaxX) {
             indexY = y;
             indexX = x+1;
-            if (!isException(indexX, indexY)) {
-                [self addEmptyPointAtXPos:indexX YPos:indexY];
-            }
+            addPoint(indexX, indexY);
         }
         // bottom
         if (y+1<kMaxY) {
@@ -355,27 +494,23 @@ static const NSInteger kMaxY = 9;
             if (x-1>=0)
             {
                 indexX = x-1;
-                if (!isException(indexX, indexY)) {
-                    [self addEmptyPointAtXPos:indexX YPos:indexY];
-                }
+                addPoint(indexX, indexY);
             }
             // center
             {
                 indexX = x;
-                if (!isException(indexX, indexY)) {
-                    [self addEmptyPointAtXPos:indexX YPos:indexY];
-                }
+                addPoint(indexX, indexY);
             }
             // right
             if (x+1<kMaxX)
             {
                 indexX = x+1;
-                if (!isException(indexX, indexY)) {
-                    [self addEmptyPointAtXPos:indexX YPos:indexY];
-                }
+                addPoint(indexX, indexY);
             }
         }
     }
+    
+    return [arr copy];
 }
 
 #pragma mark add points

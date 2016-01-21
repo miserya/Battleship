@@ -87,7 +87,6 @@
     
     
     CGPoint offset_sm = (CGPoint){10.1, 10.1};
-    
     CGPoint itemSize_sm = (CGPoint){18.75, 18.75};
     
     if (!self.player1_smallView.hidden) {
@@ -213,6 +212,38 @@
         }
     }
 }
+- (void)updatePlayer1_SmallView {
+    if (!self.player1_smallView.hidden) {
+        
+        for (UIView *v in self.player1_smallView_gameScreen.subviews) {
+            if (v.tag == 1111) {
+                [v removeFromSuperview];
+            }
+        }
+        
+        CGPoint offset_sm = (CGPoint){10.1, 10.1};
+        CGPoint itemSize_sm = (CGPoint){18.75, 18.75};
+        
+        for (BTSFieldPoint *p in self.tapped_gameFieldPlayer1.tappedShipPoints) {
+            CGPoint center = CGPointMake(offset_sm.x+p.x*itemSize_sm.x, offset_sm.y+p.y*itemSize_sm.y);
+            
+            UIImage *mark = [UIImage imageNamed:@"shipFired_light_sm"];
+            UIImageView *imgViewMark = [[UIImageView alloc] initWithImage:mark];
+            imgViewMark.center = center;
+            imgViewMark.tag = 1111;
+            [self.player1_smallView_gameScreen addSubview:imgViewMark];
+        }
+        for (BTSFieldPoint *p in self.tapped_gameFieldPlayer1.emptyPoints) {
+            CGPoint center = CGPointMake(offset_sm.x+p.x*itemSize_sm.x, offset_sm.y+p.y*itemSize_sm.y);
+            
+            UIImage *empty = [UIImage imageNamed:@"firePin_light_sm"];
+            UIImageView *imgViewEmpty = [[UIImageView alloc] initWithImage:empty];
+            imgViewEmpty.center = center;
+            imgViewEmpty.tag = 1111;
+            [self.player1_smallView_gameScreen addSubview:imgViewEmpty];
+        }
+    }
+}
 - (void)updatePlayer2_BigView {
     if (!self.player2_bigView.hidden) {
         
@@ -249,6 +280,22 @@
             imgViewEmpty.center = center;
             [self.player2_bigView_gameScreen addSubview:imgViewEmpty];
         }
+        
+        // test
+//        {
+//            CGPoint offset = (CGPoint){17, 17};
+//            CGPoint itemSize = (CGPoint){33.4, 33.4};
+//            
+//            for (BTSFieldPoint *p in self.gameFieldPlayer2.shipsPoints) {
+//                CGPoint center = CGPointMake(offset.x+p.x*itemSize.x, offset.y+p.y*itemSize.y);
+//                
+//                UIImage *ship = [UIImage imageNamed:@"ship_dark"];
+//                UIImageView *imgViewShip = [[UIImageView alloc] initWithImage:ship];
+//                imgViewShip.tag = 2222;
+//                imgViewShip.center = center;
+//                [self.player2_bigView_gameScreen addSubview:imgViewShip];
+//            }
+//        }
     }
 }
 
@@ -265,18 +312,63 @@
 #pragma mark - Touch Handlers
 
 - (IBAction)on_player1_Done:(id)sender {
+    
     if ((!self.isUserTapped || self.gameScreenMode == BTSGameScreenMode_OnePlayer) && self.currentFireFieldPoint) {
         if (self.gameScreenMode != BTSGameScreenMode_OnePlayer) {
             [self.btnDone_player1_bigView setTitle:@"<< Done" forState:UIControlStateNormal];
         }
+        
+        NSLog(@"========== 1 FIRE! ===========");
+        
         BTSFieldPointValue value = [self.gameFieldPlayer1 valueForPoint:self.currentFireFieldPoint];
         BTSFieldPointValue newValue = value == BTSFieldPointValue_Ship ? BTSFieldPointValue_TappedShip : value;
         [self.tapped_gameFieldPlayer1 setValue:newValue forPointWithX:self.currentFireFieldPoint.x Y:self.currentFireFieldPoint.y];
+        
+        if (newValue == BTSFieldPointValue_TappedShip) {
+            
+            NSLog(@"Ship tapped");
+            
+            NSArray *arrOfConnectedTappedPoints = [self.tapped_gameFieldPlayer1 arrOfConnectedPointsForPoint:self.currentFireFieldPoint];
+            if (arrOfConnectedTappedPoints.count>4) {
+                NSLog(@"Catched!");
+            }
+            
+            NSLog(@"%d connected tapped ship_points", (int)arrOfConnectedTappedPoints.count);
+            
+            if ([self.gameFieldPlayer1 canArrangePointsOfShip:arrOfConnectedTappedPoints]) {
+                NSLog(@"Ship is desctroyed!");
+                NSArray *arrOfEmptyPoints = [self.tapped_gameFieldPlayer1 environmentOfEmptyFieldsForShipWithPoint:arrOfConnectedTappedPoints];
+                NSLog(@"%d empty points", (int)arrOfEmptyPoints.count);
+                for (BTSFieldPoint *p in arrOfEmptyPoints) {
+                    [self.tapped_gameFieldPlayer1 setValue:BTSFieldPointValue_Empty forPointWithX:p.x Y:p.y];
+                }
+            }
+        }
+        
         [self updatePlayer1_BigView];
+        if (self.gameScreenMode == BTSGameScreenMode_OnePlayer) {
+            [self updatePlayer1_SmallView];
+        }
         
         self.currentFireFieldPoint = nil;
         self.currentFirePoint.hidden = YES;
         self.isUserTapped = YES;
+        
+        if (self.gameScreenMode == BTSGameScreenMode_OnePlayer) {
+            self.btnDone_player2_bigView.enabled = YES;
+        }
+        
+        if (self.gameFieldPlayer1.shipsPoints.count == self.tapped_gameFieldPlayer1.tappedShipPoints.count) {
+            NSString *message;
+            if (self.gameScreenMode == BTSGameScreenMode_OnePlayer) {
+                message = @"Computer is winner!";
+            }
+            else {
+                message = @"Player2 wins!";
+            }
+            
+            [self endGameWithNotification:message];
+        }
     }
     else {
         [self.navigationController popViewControllerAnimated:YES];
@@ -287,14 +379,55 @@
         if (self.gameScreenMode != BTSGameScreenMode_OnePlayer) {
             [self.btnDone_player2_bigView setTitle:@"<< Done" forState:UIControlStateNormal];
         }
+        
+        NSLog(@"========== 2 FIRE! ===========");
+        
         BTSFieldPointValue value = [self.gameFieldPlayer2 valueForPoint:self.currentFireFieldPoint];
         BTSFieldPointValue newValue = value == BTSFieldPointValue_Ship ? BTSFieldPointValue_TappedShip : value;
         [self.tapped_gameFieldPlayer2 setValue:newValue forPointWithX:self.currentFireFieldPoint.x Y:self.currentFireFieldPoint.y];
+        
+        if (newValue == BTSFieldPointValue_TappedShip) {
+            
+            NSLog(@"Ship tapped");
+            
+            NSArray *arrOfConnectedTappedPoints = [self.tapped_gameFieldPlayer2 arrOfConnectedPointsForPoint:self.currentFireFieldPoint];
+            
+            NSLog(@"%d connected tapped ship_points", (int)arrOfConnectedTappedPoints.count);
+            
+            if ([self.gameFieldPlayer2 canArrangePointsOfShip:arrOfConnectedTappedPoints]) {
+                NSLog(@"Ship is desctroyed!");
+                NSArray *arrOfEmptyPoints = [self.tapped_gameFieldPlayer2 environmentOfEmptyFieldsForShipWithPoint:arrOfConnectedTappedPoints];
+                NSLog(@"%d empty points", (int)arrOfEmptyPoints.count);
+                for (BTSFieldPoint *p in arrOfEmptyPoints) {
+                    [self.tapped_gameFieldPlayer2 setValue:BTSFieldPointValue_Empty forPointWithX:p.x Y:p.y];
+                }
+            }
+        }
+        
         [self updatePlayer2_BigView];
         
         self.currentFireFieldPoint = nil;
         self.currentFirePoint.hidden = YES;
         self.isUserTapped = YES;
+        
+        if (self.gameScreenMode == BTSGameScreenMode_OnePlayer) {
+            self.btnDone_player2_bigView.enabled = NO;
+            BTSFieldPoint *fire = [self.tapped_gameFieldPlayer1 randomFire];
+            self.currentFireFieldPoint = fire;
+            [self on_player1_Done:nil];
+        }
+        
+        if (self.gameFieldPlayer2.shipsPoints.count == self.tapped_gameFieldPlayer2.tappedShipPoints.count) {
+            NSString *message;
+            if (self.gameScreenMode == BTSGameScreenMode_OnePlayer) {
+                message = @"You are winner!";
+            }
+            else {
+                message = @"Player1 wins!";
+            }
+            
+            [self endGameWithNotification:message];
+        }
     }
     else {
         [self.navigationController popViewControllerAnimated:YES];
@@ -302,6 +435,13 @@
 }
 - (IBAction)onExit:(id)sender {
     [self.navigationController popViewControllerAnimated:YES];
+}
+- (void)endGameWithNotification:(NSString*)notificationMessage {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Congratulations!" message:notificationMessage preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Menu" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self.navigationController popViewControllerAnimated:YES];
+    }]];
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 static const NSInteger kMaxX = 9;

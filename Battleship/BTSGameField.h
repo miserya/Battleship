@@ -23,10 +23,20 @@ typedef enum {
 @end
 
 @interface BTSGameField : NSObject
+
 @property (nonatomic, readonly) NSMutableArray *shipsPoints;
 @property (nonatomic, readonly) NSMutableArray *tappedShipPoints;
 @property (nonatomic, readonly) NSMutableArray *emptyPoints;
+
 - (void)generate;
+
 - (BTSFieldPointValue)valueForPoint:(BTSFieldPoint*)point;
 - (void)setValue:(BTSFieldPointValue)value forPointWithX:(NSInteger)x Y:(NSInteger)y;
+
+- (NSArray*)arrOfConnectedPointsForPoint:(BTSFieldPoint*)point;
+- (BOOL)canArrangePointsOfShip:(NSArray*)shipsPoints;
+- (NSArray*)environmentOfEmptyFieldsForShipWithPoint:(NSArray*)points;
+
+- (BTSFieldPoint*)randomFire;
+
 @end
