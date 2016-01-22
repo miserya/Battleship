@@ -41,15 +41,10 @@
     [super viewDidLoad];
     
     self.isUserTapped = NO;
-    if (self.gameScreenMode == BTSGameScreenMode_OnePlayer) {
-        self.tapped_gameFieldPlayer1 = [BTSGameField new];
-        self.tapped_gameFieldPlayer2 = [BTSGameField new];
-    }
     
     switch (self.gameScreenMode) {
         case BTSGameScreenMode_OnePlayer: {
-//            [self.btnDone_player2_bigView setTitle:@"Exit Game" forState:UIControlStateNormal];
-//            [self.btnDone_player2_bigView setImage:[UIImage imageNamed:@"btnExit"] forState:UIControlStateNormal];
+
             [self.label_player1_smallView setText:@"You"];
             [self.label_player2_bigView setText:@"Computer"];
             
@@ -58,6 +53,9 @@
     
             self.gameFieldPlayer2 = [BTSGameField new];
             [self.gameFieldPlayer2 generate];
+            
+            self.tapped_gameFieldPlayer1 = [BTSGameField new];
+            self.tapped_gameFieldPlayer2 = [BTSGameField new];
             
             self.player1_bigView.hidden = YES;
             self.player2_smallView.hidden = YES;
