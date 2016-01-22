@@ -67,7 +67,7 @@
         __block NSMutableArray *arr = [NSMutableArray new];
         __block NSMutableArray *arrOfExceptions = [NSMutableArray arrayWithArray:exceptions];
         void (^addPoint) (NSInteger, NSInteger) = ^void (NSInteger x, NSInteger y) {
-            NSString *key = [NSString stringWithFormat:@"%ld%ld", x, y];
+            NSString *key = [wSelf makeKeyForX:x Y:y];
             BTSFieldPoint *p = wSelf.gameFieldDictionary[key];
             if (p && ![p isKindOfClass:[NSNull class]]
                 && (p.value == BTSFieldPointValue_Ship || p.value == BTSFieldPointValue_TappedShip)
@@ -88,11 +88,6 @@
         {
             x1 = x;
             y1 = y-1;
-//            NSString *key = [NSString stringWithFormat:@"%ld%ld", x1, y1];
-//            BTSFieldPoint *p = wSelf.gameFieldDictionary[key];
-//            if (p && ![p isKindOfClass:[NSNull class]] && (p.value == BTSFieldPointValue_Ship || p.value == BTSFieldPointValue_TappedShip) && !self.isException(p.x, p.y, exceptions)) {
-//                [arr addObject:p];
-//            }
             addPoint(x1, y1);
         }
         //left
@@ -122,8 +117,11 @@
     
     return self;
 }
+- (NSString*)makeKeyForX:(NSInteger)x Y:(NSInteger)y {
+    return [NSString stringWithFormat:@"%d%d", (int)x, (int)y];
+}
 - (BTSFieldPointValue)valueForPoint:(BTSFieldPoint*)point {
-    NSString *key = [NSString stringWithFormat:@"%ld%ld", point.x, point.y];
+    NSString *key = [self makeKeyForX:point.x Y:point.y];
     if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]]) {
         BTSFieldPoint *p = self.gameFieldDictionary[key];
         return p.value;
@@ -131,7 +129,7 @@
     return BTSFieldPointValue_Empty;
 }
 - (void)setValue:(BTSFieldPointValue)value forPointWithX:(NSInteger)x Y:(NSInteger)y {
-    NSString *key = [NSString stringWithFormat:@"%ld%ld", x, y];
+    NSString *key = [self makeKeyForX:x Y:y];
     BTSFieldPoint *point = [[BTSFieldPoint alloc] initWithXPos:x YPos:y value:value];
     self.gameFieldDictionary[key] = point;
     
@@ -153,7 +151,7 @@
     }
 }
 - (BOOL)isPointAlreadyTapped:(BTSFieldPoint*)point {
-    NSString *key = [NSString stringWithFormat:@"%ld%ld", point.x, point.y];
+    NSString *key = [self makeKeyForX:point.x Y:point.y];
     if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]])
         return YES;
     return NO;
@@ -212,7 +210,7 @@
 - (BOOL)canArrangePointsOfShip:(NSArray*)shipsPoints {
     
     for (BTSFieldPoint *p in shipsPoints) {
-        NSString *key = [NSString stringWithFormat:@"%ld%ld", p.x, p.y];
+        NSString *key = [self makeKeyForX:p.x Y:p.y];
         NSArray *arr = self.shipsArrRelatedToPoint(self.gameFieldDictionary[key], shipsPoints);
         if (arr.count>0)
             return NO;
@@ -370,7 +368,7 @@ static const NSInteger kMaxY = 9;
     
     __block __weak BTSGameField *wSelf = self;
     BOOL (^checkPoint)(NSInteger, NSInteger) = ^BOOL (NSInteger indexX, NSInteger indexY) {
-        NSString *key = [NSString stringWithFormat:@"%ld%ld", indexX, indexY];
+        NSString *key = [self makeKeyForX:indexX Y:indexY];
         if (wSelf.gameFieldDictionary[key] && ![wSelf.gameFieldDictionary[key] isKindOfClass:[NSNull class]] && ((BTSFieldPoint*)wSelf.gameFieldDictionary[key]).value == BTSFieldPointValue_Ship) {
             return NO;
         }
@@ -530,7 +528,7 @@ static const NSInteger kMaxY = 9;
 }
 - (BTSFieldPoint*)addPoint:(BTSFieldPointValue)value atXPos:(NSInteger)xPos YPos:(NSInteger)yPos {
     BTSFieldPoint *point = [[BTSFieldPoint alloc] initWithXPos:xPos YPos:yPos value:value];
-    NSString *key = [NSString stringWithFormat:@"%ld%ld", xPos, yPos];
+    NSString *key = [self makeKeyForX:xPos Y:yPos];
     self.gameFieldDictionary[key] = point;
     return point;
 }
