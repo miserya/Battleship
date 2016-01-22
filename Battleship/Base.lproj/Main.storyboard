@@ -16,7 +16,6 @@
             <string>Besom</string>
             <string>Besom</string>
             <string>Besom</string>
-            <string>Besom</string>
         </mutableArray>
     </customFonts>
     <scenes>
@@ -35,12 +34,6 @@
                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="splash" translatesAutoresizingMaskIntoConstraints="NO" id="MS1-Ra-Esq">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                             </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Battleship" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kn8-tv-hvC">
-                                <rect key="frame" x="46" y="296" width="283" height="75"/>
-                                <fontDescription key="fontDescription" name="Besom" family="Besom" pointSize="75"/>
-                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="h2t-mj-84p">
                                 <rect key="frame" x="93" y="153" width="190" height="62"/>
                                 <fontDescription key="fontDescription" name="Besom" family="Besom" pointSize="50"/>
@@ -71,16 +64,9 @@
                             <constraint firstItem="MS1-Ra-Esq" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Het-mB-HQv"/>
                             <constraint firstItem="aBX-U1-z9F" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Hp5-z1-b2u"/>
                             <constraint firstItem="h2t-mj-84p" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="-150" id="V8H-wj-4C7"/>
-                            <constraint firstItem="kn8-tv-hvC" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="c76-mz-IJD"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="MS1-Ra-Esq" secondAttribute="bottom" id="oha-p3-hi1"/>
                             <constraint firstItem="aBX-U1-z9F" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="150" id="sLt-mf-Waw"/>
-                            <constraint firstItem="kn8-tv-hvC" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="smP-A8-jLy"/>
                         </constraints>
-                        <variation key="default">
-                            <mask key="subviews">
-                                <exclude reference="kn8-tv-hvC"/>
-                            </mask>
-                        </variation>
                     </view>
                     <navigationItem key="navigationItem" id="cDn-T0-FAe"/>
                     <simulatedStatusBarMetrics key="simulatedStatusBarMetrics" statusBarStyle="lightContent"/>
@@ -102,8 +88,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="game_bg" translatesAutoresizingMaskIntoConstraints="NO" id="rrd-fP-yrb">
-                                <rect key="frame" x="-1" y="0.0" width="377" height="667"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="game_bg" translatesAutoresizingMaskIntoConstraints="NO" id="rrd-fP-yrb">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                             </imageView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cPW-Ti-rrl">
                                 <rect key="frame" x="0.0" y="333" width="375" height="334"/>

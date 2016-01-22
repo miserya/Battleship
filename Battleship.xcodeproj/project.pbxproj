@@ -294,7 +294,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = Battleship/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.softheme.clouduniverse;
+				PRODUCT_BUNDLE_IDENTIFIER = com.softheme.Battleship;
 				PRODUCT_NAME = Battleship;
 			};
 			name = Debug;
@@ -305,7 +305,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = Battleship/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.softheme.clouduniverse;
+				PRODUCT_BUNDLE_IDENTIFIER = com.softheme.Battleship;
 				PRODUCT_NAME = Battleship;
 			};
 			name = Release;
