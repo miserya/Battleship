@@ -152,6 +152,13 @@
         }
     }
 }
+- (BOOL)isPointAlreadyTapped:(BTSFieldPoint*)point {
+    NSString *key = [NSString stringWithFormat:@"%ld%ld", point.x, point.y];
+    if (self.gameFieldDictionary[key] && ![self.gameFieldDictionary[key] isKindOfClass:[NSNull class]])
+        return YES;
+    return NO;
+}
+
 - (BTSFieldPoint*)randomFire {
     if (!self.arrOfFreePositions) {
         self.arrOfFreePositions = [NSMutableArray new];

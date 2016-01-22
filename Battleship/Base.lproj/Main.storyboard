@@ -217,11 +217,11 @@
                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="game_bg" translatesAutoresizingMaskIntoConstraints="NO" id="DLD-mh-ZC1">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                             </imageView>
-                            <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="A8H-5D-kUY" userLabel="big player 1 View">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="A8H-5D-kUY" userLabel="big player 1 View">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="467"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="e1l-x3-Kd7" userLabel="game screen">
-                                        <rect key="frame" x="37" y="93" width="301" height="301"/>
+                                        <rect key="frame" x="37" y="83" width="301" height="301"/>
                                         <subviews>
                                             <stackView opaque="NO" contentMode="scaleToFill" distribution="equalSpacing" translatesAutoresizingMaskIntoConstraints="NO" id="THC-pQ-U1w">
                                                 <rect key="frame" x="0.0" y="0.0" width="301" height="301"/>
@@ -361,13 +361,13 @@
                                         </connections>
                                     </view>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Player 1" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RyR-uv-Dtl">
-                                        <rect key="frame" x="0.0" y="416" width="375" height="36"/>
+                                        <rect key="frame" x="0.0" y="25" width="375" height="36"/>
                                         <fontDescription key="fontDescription" name="Besom" family="Besom" pointSize="36"/>
                                         <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="NuM-zE-Kfh">
-                                        <rect key="frame" x="160" y="37" width="55" height="48"/>
+                                        <rect key="frame" x="160" y="404" width="55" height="48"/>
                                         <fontDescription key="fontDescription" name="Besom" family="Besom" pointSize="36"/>
                                         <state key="normal" title="Fire!">
                                             <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -380,23 +380,27 @@
                                 <color key="backgroundColor" red="0.086274509799999996" green="0.20784313730000001" blue="0.2470588235" alpha="0.46000000000000002" colorSpace="calibratedRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="trailing" secondItem="RyR-uv-Dtl" secondAttribute="trailing" id="Ad7-rq-ev3"/>
+                                    <constraint firstAttribute="bottom" secondItem="NuM-zE-Kfh" secondAttribute="bottom" constant="15" id="Ceb-dn-Avx"/>
                                     <constraint firstItem="RyR-uv-Dtl" firstAttribute="top" secondItem="A8H-5D-kUY" secondAttribute="top" id="EVS-7G-doj"/>
                                     <constraint firstItem="NuM-zE-Kfh" firstAttribute="centerX" secondItem="A8H-5D-kUY" secondAttribute="centerX" id="Mba-1w-RQY"/>
                                     <constraint firstItem="RyR-uv-Dtl" firstAttribute="leading" secondItem="A8H-5D-kUY" secondAttribute="leading" id="XIq-Pz-rBH"/>
                                     <constraint firstItem="RyR-uv-Dtl" firstAttribute="leading" secondItem="e1l-x3-Kd7" secondAttribute="trailing" id="aNZ-Ct-tCC"/>
                                     <constraint firstItem="e1l-x3-Kd7" firstAttribute="top" secondItem="NuM-zE-Kfh" secondAttribute="bottom" constant="8" id="etd-eH-01m"/>
                                     <constraint firstAttribute="bottom" secondItem="RyR-uv-Dtl" secondAttribute="bottom" constant="15" id="nnY-99-pYT"/>
-                                    <constraint firstItem="e1l-x3-Kd7" firstAttribute="centerY" secondItem="A8H-5D-kUY" secondAttribute="centerY" constant="10" id="s50-ls-255"/>
+                                    <constraint firstItem="e1l-x3-Kd7" firstAttribute="centerY" secondItem="A8H-5D-kUY" secondAttribute="centerY" id="s50-ls-255"/>
                                     <constraint firstItem="e1l-x3-Kd7" firstAttribute="centerX" secondItem="A8H-5D-kUY" secondAttribute="centerX" id="uI2-QP-axK"/>
+                                    <constraint firstItem="RyR-uv-Dtl" firstAttribute="top" secondItem="A8H-5D-kUY" secondAttribute="top" constant="25" id="y7w-FT-16b"/>
                                 </constraints>
                                 <variation key="default">
                                     <mask key="constraints">
                                         <exclude reference="EVS-7G-doj"/>
                                         <exclude reference="aNZ-Ct-tCC"/>
+                                        <exclude reference="nnY-99-pYT"/>
+                                        <exclude reference="etd-eH-01m"/>
                                     </mask>
                                 </variation>
                             </view>
-                            <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="KlC-q9-4FC" userLabel="small player 2 View">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="KlC-q9-4FC" userLabel="small player 2 View">
                                 <rect key="frame" x="0.0" y="467" width="375" height="200"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="gBb-cE-er0" userLabel="big game screen">
@@ -560,7 +564,7 @@
                                     </mask>
                                 </variation>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Bwm-LY-Qtc" userLabel="small player 1 View">
+                            <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Bwm-LY-Qtc" userLabel="small player 1 View">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="190"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0AI-pb-OOA" userLabel="game screen">
@@ -724,7 +728,7 @@
                                     </mask>
                                 </variation>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="G0O-Pm-t9d" userLabel="big player 2 View">
+                            <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="G0O-Pm-t9d" userLabel="big player 2 View">
                                 <rect key="frame" x="0.0" y="190" width="375" height="477"/>
                                 <subviews>
                                     <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rXH-SI-eoD">

@@ -19,7 +19,11 @@ typedef enum {
 @interface BTSGameScreen : UIViewController
 
 @property (nonatomic) BTSGameScreenMode gameScreenMode;
+
 @property (nonatomic, strong) BTSGameField *gameFieldPlayer1;
 @property (nonatomic, strong) BTSGameField *gameFieldPlayer2;
+
+@property (nonatomic, strong) BTSGameField *tapped_gameFieldPlayer1;
+@property (nonatomic, strong) BTSGameField *tapped_gameFieldPlayer2;
 
 @end

@@ -28,9 +28,6 @@
 
 @property (weak, nonatomic) IBOutlet UIButton *btnExitForOnePlayerGame;
 
-@property (nonatomic, strong) BTSGameField *tapped_gameFieldPlayer1;
-@property (nonatomic, strong) BTSGameField *tapped_gameFieldPlayer2;
-
 @property (nonatomic, weak) UIImageView *currentFirePoint;
 @property (nonatomic, strong) BTSFieldPoint *currentFireFieldPoint;
 
@@ -44,8 +41,10 @@
     [super viewDidLoad];
     
     self.isUserTapped = NO;
-    self.tapped_gameFieldPlayer1 = [BTSGameField new];
-    self.tapped_gameFieldPlayer2 = [BTSGameField new];
+    if (self.gameScreenMode == BTSGameScreenMode_OnePlayer) {
+        self.tapped_gameFieldPlayer1 = [BTSGameField new];
+        self.tapped_gameFieldPlayer2 = [BTSGameField new];
+    }
     
     switch (self.gameScreenMode) {
         case BTSGameScreenMode_OnePlayer: {
@@ -318,7 +317,7 @@
             [self.btnDone_player1_bigView setTitle:@"<< Done" forState:UIControlStateNormal];
         }
         
-        NSLog(@"========== 1 FIRE! ===========");
+//        NSLog(@"========== 1 FIRE! ===========");
         
         BTSFieldPointValue value = [self.gameFieldPlayer1 valueForPoint:self.currentFireFieldPoint];
         BTSFieldPointValue newValue = value == BTSFieldPointValue_Ship ? BTSFieldPointValue_TappedShip : value;
@@ -326,19 +325,19 @@
         
         if (newValue == BTSFieldPointValue_TappedShip) {
             
-            NSLog(@"Ship tapped");
+//            NSLog(@"Ship tapped");
             
             NSArray *arrOfConnectedTappedPoints = [self.tapped_gameFieldPlayer1 arrOfConnectedPointsForPoint:self.currentFireFieldPoint];
-            if (arrOfConnectedTappedPoints.count>4) {
-                NSLog(@"Catched!");
-            }
+//            if (arrOfConnectedTappedPoints.count>4) {
+//                NSLog(@"Catched!");
+//            }
             
-            NSLog(@"%d connected tapped ship_points", (int)arrOfConnectedTappedPoints.count);
+//            NSLog(@"%d connected tapped ship_points", (int)arrOfConnectedTappedPoints.count);
             
             if ([self.gameFieldPlayer1 canArrangePointsOfShip:arrOfConnectedTappedPoints]) {
-                NSLog(@"Ship is desctroyed!");
+//                NSLog(@"Ship is desctroyed!");
                 NSArray *arrOfEmptyPoints = [self.tapped_gameFieldPlayer1 environmentOfEmptyFieldsForShipWithPoint:arrOfConnectedTappedPoints];
-                NSLog(@"%d empty points", (int)arrOfEmptyPoints.count);
+//                NSLog(@"%d empty points", (int)arrOfEmptyPoints.count);
                 for (BTSFieldPoint *p in arrOfEmptyPoints) {
                     [self.tapped_gameFieldPlayer1 setValue:BTSFieldPointValue_Empty forPointWithX:p.x Y:p.y];
                 }
@@ -380,7 +379,7 @@
             [self.btnDone_player2_bigView setTitle:@"<< Done" forState:UIControlStateNormal];
         }
         
-        NSLog(@"========== 2 FIRE! ===========");
+//        NSLog(@"========== 2 FIRE! ===========");
         
         BTSFieldPointValue value = [self.gameFieldPlayer2 valueForPoint:self.currentFireFieldPoint];
         BTSFieldPointValue newValue = value == BTSFieldPointValue_Ship ? BTSFieldPointValue_TappedShip : value;
@@ -388,16 +387,16 @@
         
         if (newValue == BTSFieldPointValue_TappedShip) {
             
-            NSLog(@"Ship tapped");
+//            NSLog(@"Ship tapped");
             
             NSArray *arrOfConnectedTappedPoints = [self.tapped_gameFieldPlayer2 arrOfConnectedPointsForPoint:self.currentFireFieldPoint];
             
-            NSLog(@"%d connected tapped ship_points", (int)arrOfConnectedTappedPoints.count);
+//            NSLog(@"%d connected tapped ship_points", (int)arrOfConnectedTappedPoints.count);
             
             if ([self.gameFieldPlayer2 canArrangePointsOfShip:arrOfConnectedTappedPoints]) {
-                NSLog(@"Ship is desctroyed!");
+//                NSLog(@"Ship is desctroyed!");
                 NSArray *arrOfEmptyPoints = [self.tapped_gameFieldPlayer2 environmentOfEmptyFieldsForShipWithPoint:arrOfConnectedTappedPoints];
-                NSLog(@"%d empty points", (int)arrOfEmptyPoints.count);
+//                NSLog(@"%d empty points", (int)arrOfEmptyPoints.count);
                 for (BTSFieldPoint *p in arrOfEmptyPoints) {
                     [self.tapped_gameFieldPlayer2 setValue:BTSFieldPointValue_Empty forPointWithX:p.x Y:p.y];
                 }
@@ -439,7 +438,7 @@
 - (void)endGameWithNotification:(NSString*)notificationMessage {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Congratulations!" message:notificationMessage preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Menu" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        [self.navigationController popViewControllerAnimated:YES];
+        [self.navigationController popToRootViewControllerAnimated:YES];
     }]];
     [self presentViewController:alert animated:YES completion:nil];
 }
@@ -453,43 +452,54 @@ static const NSInteger kMaxY = 9;
     CGPoint pos = [sender locationInView:self.player1_bigView_gameScreen];
     NSInteger x = pos.x/stepX;
     NSInteger y = pos.y/stepY;
-    self.currentFireFieldPoint = [[BTSFieldPoint alloc] initWithXPos:x YPos:y value:BTSFieldPointValue_Possible];
-    CGPoint offset = (CGPoint){17, 17};
-    CGPoint itemSize = (CGPoint){33.4, 33.4};
     
-    if (!self.currentFirePoint) {
-        UIImageView *fp = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"fire_point_light"]];
-        [self.player1_bigView_gameScreen addSubview:fp];
-        self.currentFirePoint = fp;
-    }
-    else {
-        self.currentFirePoint.hidden = NO;
-    }
+    BTSFieldPoint *newPoint = [[BTSFieldPoint alloc] initWithXPos:x YPos:y value:BTSFieldPointValue_Possible];
     
-    self.currentFirePoint.center = CGPointMake(self.player1_bigView_gameScreen.frame.origin.x+offset.x+x*itemSize.x, self.player1_bigView_gameScreen.frame.origin.y+offset.y+y*itemSize.y);
-    self.currentFirePoint.hidden = NO;
+    if (![self.tapped_gameFieldPlayer1 isPointAlreadyTapped:newPoint]) {
+        self.currentFireFieldPoint = newPoint;
+        
+        CGPoint offset = (CGPoint){17, 17};
+        CGPoint itemSize = (CGPoint){33.4, 33.4};
+        
+        if (!self.currentFirePoint) {
+            UIImageView *fp = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"fire_point_light"]];
+            [self.player1_bigView_gameScreen addSubview:fp];
+            self.currentFirePoint = fp;
+        }
+        else {
+            self.currentFirePoint.hidden = NO;
+        }
+        
+        self.currentFirePoint.center = CGPointMake(offset.x+x*itemSize.x, offset.y+y*itemSize.y);
+    }
 }
 - (IBAction)onPlayer2_bigGameScreen_Tapped:(UITapGestureRecognizer*)sender {
     float stepX = self.player2_bigView_gameScreen.frame.size.width/kMaxX;
     float stepY = self.player2_bigView_gameScreen.frame.size.height/kMaxY;
+    
     CGPoint pos = [sender locationInView:self.player2_bigView_gameScreen];
+    
     NSInteger x = pos.x/stepX;
     NSInteger y = pos.y/stepY;
-    self.currentFireFieldPoint = [[BTSFieldPoint alloc] initWithXPos:x YPos:y value:BTSFieldPointValue_Possible];
-    CGPoint offset = (CGPoint){17, 17};
-    CGPoint itemSize = (CGPoint){33.4, 33.4};
     
-    if (!self.currentFirePoint) {
-        UIImageView *fp = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"fire_point_dark"]];
-        [self.player2_bigView_gameScreen addSubview:fp];
-        self.currentFirePoint = fp;
-    }
-    else {
-        self.currentFirePoint.hidden = NO;
-    }
+    BTSFieldPoint *newPoint = [[BTSFieldPoint alloc] initWithXPos:x YPos:y value:BTSFieldPointValue_Possible];
     
-    self.currentFirePoint.center = CGPointMake(offset.x+x*itemSize.x, offset.y+y*itemSize.y);
-    self.currentFirePoint.hidden = NO;
+    if (![self.tapped_gameFieldPlayer2 isPointAlreadyTapped:newPoint]) {
+        self.currentFireFieldPoint = newPoint;
+        CGPoint offset = (CGPoint){17, 17};
+        CGPoint itemSize = (CGPoint){33.4, 33.4};
+        
+        if (!self.currentFirePoint) {
+            UIImageView *fp = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"fire_point_dark"]];
+            [self.player2_bigView_gameScreen addSubview:fp];
+            self.currentFirePoint = fp;
+        }
+        else {
+            self.currentFirePoint.hidden = NO;
+        }
+        
+        self.currentFirePoint.center = CGPointMake(offset.x+x*itemSize.x, offset.y+y*itemSize.y);
+    }
 }
 
 @end

@@ -32,6 +32,7 @@ typedef enum {
 
 - (BTSFieldPointValue)valueForPoint:(BTSFieldPoint*)point;
 - (void)setValue:(BTSFieldPointValue)value forPointWithX:(NSInteger)x Y:(NSInteger)y;
+- (BOOL)isPointAlreadyTapped:(BTSFieldPoint*)point;
 
 - (NSArray*)arrOfConnectedPointsForPoint:(BTSFieldPoint*)point;
 - (BOOL)canArrangePointsOfShip:(NSArray*)shipsPoints;
