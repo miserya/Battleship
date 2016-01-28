@@ -15,9 +15,12 @@
 @property (weak, nonatomic) IBOutlet UIView *player1_bigView_gameScreen;
 @property (weak, nonatomic) IBOutlet UIView *player2_smallView;
 @property (weak, nonatomic) IBOutlet UIView *player2_smallView_gameScreen;
+@property (weak, nonatomic) IBOutlet UILabel *player2_smallView_labelDescription;
+
 
 @property (weak, nonatomic) IBOutlet UIView *player1_smallView;
 @property (weak, nonatomic) IBOutlet UIView *player1_smallView_gameScreen;
+@property (weak, nonatomic) IBOutlet UILabel *player1_smallView_labelDescription;
 @property (weak, nonatomic) IBOutlet UIView *player2_bigView;
 @property (weak, nonatomic) IBOutlet UIView *player2_bigView_gameScreen;
 
@@ -82,6 +85,8 @@
         }
     }
     
+    self.player1_smallView_labelDescription.text = @"";
+    self.player2_smallView_labelDescription.text = @"";
     
     CGPoint offset_sm = (CGPoint){10.1, 10.1};
     CGPoint itemSize_sm = (CGPoint){18.75, 18.75};
@@ -315,31 +320,27 @@
             [self.btnDone_player1_bigView setTitle:@"<< Done" forState:UIControlStateNormal];
         }
         
-//        NSLog(@"========== 1 FIRE! ===========");
-        
         BTSFieldPointValue value = [self.gameFieldPlayer1 valueForPoint:self.currentFireFieldPoint];
         BTSFieldPointValue newValue = value == BTSFieldPointValue_Ship ? BTSFieldPointValue_TappedShip : value;
         [self.tapped_gameFieldPlayer1 setValue:newValue forPointWithX:self.currentFireFieldPoint.x Y:self.currentFireFieldPoint.y];
         
         if (newValue == BTSFieldPointValue_TappedShip) {
-            
-//            NSLog(@"Ship tapped");
-            
+            self.player2_smallView_labelDescription.text = @"Ship founded!";
             NSArray *arrOfConnectedTappedPoints = [self.tapped_gameFieldPlayer1 arrOfConnectedPointsForPoint:self.currentFireFieldPoint];
-//            if (arrOfConnectedTappedPoints.count>4) {
-//                NSLog(@"Catched!");
-//            }
-            
-//            NSLog(@"%d connected tapped ship_points", (int)arrOfConnectedTappedPoints.count);
             
             if ([self.gameFieldPlayer1 canArrangePointsOfShip:arrOfConnectedTappedPoints]) {
-//                NSLog(@"Ship is desctroyed!");
                 NSArray *arrOfEmptyPoints = [self.tapped_gameFieldPlayer1 environmentOfEmptyFieldsForShipWithPoint:arrOfConnectedTappedPoints];
-//                NSLog(@"%d empty points", (int)arrOfEmptyPoints.count);
                 for (BTSFieldPoint *p in arrOfEmptyPoints) {
                     [self.tapped_gameFieldPlayer1 setValue:BTSFieldPointValue_Empty forPointWithX:p.x Y:p.y];
                 }
             }
+        }
+        else {
+            self.player2_smallView_labelDescription.text = @"Empty field";
+        }
+
+        if (self.delegate && [self.delegate respondsToSelector:@selector(onDescriptionChanged:)]) {
+            [self.delegate onDescriptionChanged:self];
         }
         
         [self updatePlayer1_BigView];
@@ -377,28 +378,31 @@
             [self.btnDone_player2_bigView setTitle:@"<< Done" forState:UIControlStateNormal];
         }
         
-//        NSLog(@"========== 2 FIRE! ===========");
-        
         BTSFieldPointValue value = [self.gameFieldPlayer2 valueForPoint:self.currentFireFieldPoint];
         BTSFieldPointValue newValue = value == BTSFieldPointValue_Ship ? BTSFieldPointValue_TappedShip : value;
         [self.tapped_gameFieldPlayer2 setValue:newValue forPointWithX:self.currentFireFieldPoint.x Y:self.currentFireFieldPoint.y];
         
+        NSString *descriptionText;
         if (newValue == BTSFieldPointValue_TappedShip) {
             
-//            NSLog(@"Ship tapped");
+            descriptionText = @"Ship founded!";
             
             NSArray *arrOfConnectedTappedPoints = [self.tapped_gameFieldPlayer2 arrOfConnectedPointsForPoint:self.currentFireFieldPoint];
             
-//            NSLog(@"%d connected tapped ship_points", (int)arrOfConnectedTappedPoints.count);
-            
             if ([self.gameFieldPlayer2 canArrangePointsOfShip:arrOfConnectedTappedPoints]) {
-//                NSLog(@"Ship is desctroyed!");
                 NSArray *arrOfEmptyPoints = [self.tapped_gameFieldPlayer2 environmentOfEmptyFieldsForShipWithPoint:arrOfConnectedTappedPoints];
-//                NSLog(@"%d empty points", (int)arrOfEmptyPoints.count);
                 for (BTSFieldPoint *p in arrOfEmptyPoints) {
                     [self.tapped_gameFieldPlayer2 setValue:BTSFieldPointValue_Empty forPointWithX:p.x Y:p.y];
                 }
             }
+        }
+        else {
+            descriptionText = @"Empty field";
+        }
+        
+        self.player1_smallView_labelDescription.text = descriptionText;
+        if (self.delegate && [self.delegate respondsToSelector:@selector(onDescriptionChanged:)]) {
+            [self.delegate onDescriptionChanged:self];
         }
         
         [self updatePlayer2_BigView];
@@ -499,5 +503,7 @@ static const NSInteger kMaxY = 9;
         self.currentFirePoint.center = CGPointMake(offset.x+x*itemSize.x, offset.y+y*itemSize.y);
     }
 }
-
+- (void)doSmth {
+//    NSLog(@"doSmth");
+}
 @end

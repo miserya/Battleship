@@ -9,6 +9,11 @@
 #import <UIKit/UIKit.h>
 
 @class BTSGameField;
+@class BTSGameScreen;
+
+@protocol BTSGameScreenDelegate <NSObject>
+- (void)onDescriptionChanged:(BTSGameScreen*)gameField;
+@end
 
 typedef enum {
     BTSGameScreenMode_OnePlayer = 0,
@@ -26,4 +31,6 @@ typedef enum {
 @property (nonatomic, strong) BTSGameField *tapped_gameFieldPlayer1;
 @property (nonatomic, strong) BTSGameField *tapped_gameFieldPlayer2;
 
+@property (nonatomic, weak) id<BTSGameScreenDelegate> delegate;
+- (void)doSmth;
 @end

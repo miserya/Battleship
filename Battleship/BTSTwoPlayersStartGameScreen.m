@@ -16,7 +16,7 @@ typedef enum {
     BTSPlayer_2 = 2
 }BTSPlayer;
 
-@interface BTSTwoPlayersStartGameScreen ()
+@interface BTSTwoPlayersStartGameScreen () <BTSGameScreenDelegate>
 
 @property (weak, nonatomic) IBOutlet UIImageView *player1_Ship;
 @property (weak, nonatomic) IBOutlet UIImageView *player2_Ship;
@@ -30,6 +30,8 @@ typedef enum {
 @property (nonatomic, copy) void (^animateShip2)();
 @property (nonatomic, copy) BOOL (^canAnimateShip1)();
 @property (nonatomic, copy) BOOL (^canAnimateShip2)();
+
+//@property (nonatomic, assign) NSString *prevousDescription;
 
 @end
 
@@ -80,12 +82,14 @@ typedef enum {
 
 // In a storyboard-based application, you will often want to do a little preparation before navigation
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+//    NSLog(@"%@", self.prevousDescription);
     if ([segue.destinationViewController isKindOfClass:[BTSGameScreen class]]) {
         ((BTSGameScreen*)segue.destinationViewController).gameScreenMode = (self.currentPlayer == BTSPlayer_1) ? BTSGameScreenMode_Player1 : BTSGameScreenMode_Player2;
         ((BTSGameScreen*)segue.destinationViewController).gameFieldPlayer1 = self.player1_GameField;
         ((BTSGameScreen*)segue.destinationViewController).gameFieldPlayer2 = self.player2_GameField;
         ((BTSGameScreen*)segue.destinationViewController).tapped_gameFieldPlayer1 = self.tapped_gameFieldPlayer1;
         ((BTSGameScreen*)segue.destinationViewController).tapped_gameFieldPlayer2 = self.tapped_gameFieldPlayer2;
+        ((BTSGameScreen*)segue.destinationViewController).delegate = self;
     }
 }
 - (void)initializeGame {
@@ -116,6 +120,18 @@ typedef enum {
 }
 - (IBAction)onExit:(id)sender {
     [self.navigationController popToRootViewControllerAnimated:YES];
+}
+
+#pragma mark - BTSGameScreenDelegate
+
+- (void)onDescriptionChanged:(BTSGameScreen *)gameScreen {
+    
+    __block __unsafe_unretained BTSGameScreen *wGameScreen = gameScreen;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        while (YES) {
+            [wGameScreen doSmth];
+        }
+    });
 }
 
 @end
